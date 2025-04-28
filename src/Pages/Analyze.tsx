@@ -1,11 +1,51 @@
 import React, {useEffect} from 'react';
 import { Link } from 'react-router-dom';
-import anime, { AnimeTimelineInstance } from 'animejs';
+import { gsap } from "gsap";
+import { useGSAP } from "@gsap/react";
+import { Pagination} from 'swiper/modules';
+import { Swiper, SwiperSlide } from 'swiper/react';
+
+/* css */
+import 'swiper/css';
+import 'swiper/css/pagination';
 
 /* Components */
 import Layout from '../Components/Layout';
 
 const Analyze = () => {
+    const scrollToBottomUI = (target : string, className : string, onComplete? : ()=> void)=> {
+        const $scrollBox = document.querySelector(target) as HTMLDivElement;
+        const objLength = Number((target == '.analyzeViewInner') ?  $scrollBox.querySelectorAll('[data-sourcepos]').length : $scrollBox.querySelector('.chartMsgItem.active' + className)?.querySelectorAll('[data-sourcepos]').length);
+
+        if (objLength === 0) return;
+
+        const scrollInterval = setInterval(function() {
+            $scrollBox.scrollTo({
+                top : $scrollBox.scrollHeight,
+                behavior: "smooth"
+            });
+
+            if ($scrollBox.querySelector('.chartMsgItem.active' + className)?.querySelectorAll('[data-sourcepos]')[objLength - 1].classList.contains('complete')) {
+                clearInterval(scrollInterval);
+                $scrollBox.querySelector('.chartMsgItem.active')?.classList.add('complete');
+
+                if (typeof onComplete === 'function') {
+                    onComplete();
+                }
+            }
+
+            if(target == '.analyzeViewInner'){
+                if ($scrollBox.querySelectorAll('[data-sourcepos]')[objLength - 1].classList.contains('complete')) {
+                    clearInterval(scrollInterval);
+                    $scrollBox.classList.add('complete');
+
+                    if (typeof onComplete === 'function') {
+                        onComplete();
+                    }
+                }
+            }
+        }, 200);
+    }
     const sourcepos = (target: string, time: number) => {
         const el = document.querySelectorAll('[data-sourcepos]');
 
@@ -42,46 +82,112 @@ const Analyze = () => {
 
                     setTimeout(() => {
                         objectEl.classList.add('active');
+                        objectEl.setAttribute('getClass' , 'active');
 
                         if (objectEl.classList.contains('complete')) {
                             return;
                         }
 
-                        if (onlyText) {
-                            if (objectEl.classList.contains('complete')) return;
-
-                            // anime.timeline({ loop: false }).add({
-                            //   targets: objectEl.querySelectorAll('.letter'),
-                            //   scale: [0.3, 1],
-                            //   opacity: [0, 1],
-                            //   translateZ: 0,
-                            //   easing: 'easeOutExpo',
-                            //   duration: 600,
-                            //   delay: (_, i) => 7 * (i + 1),
-                            //   complete: () => {
-                            //     objectEl.classList.add('complete');
-                            //   },
-                            // });
-                          }
-                          else {
+                        if (!onlyText) {
                             const onTransitionEnd = () => {
-                              objectEl.classList.add('complete');
-                              objectEl.removeEventListener('transitionend', onTransitionEnd);
+                                objectEl.classList.add('complete');
+                                objectEl.setAttribute('getClass' , 'active complete');
+                                objectEl.removeEventListener('transitionend', onTransitionEnd);
                             };
                             objectEl.addEventListener('transitionend', onTransitionEnd);
-                          }
+                        }
                     }, timmer * 350);
                 });
             });
         }, time);
     }
 
-    useEffect(() => {
-        document.querySelectorAll('.step01').forEach((object) => {
-            object.classList.add('active');
-        });
+    const stepChat = (stepActive : number) => {
+        switch (stepActive) {
+            case 1 :
+                const msgBalloon = document.querySelector('.msgBalloon');
+                gsap.to(msgBalloon , 0.5 , {autoAlpha : 1});
 
-        sourcepos('.step01.active', 300);
+                document.querySelectorAll('.step01').forEach((object) => {
+                    object.classList.add('active');
+                });
+
+                sourcepos('.msgArea.active', 300);
+                sourcepos('.step01.active', 300);
+
+                scrollToBottomUI('.analyzeViewInner', '', ()=> {
+                    setTimeout(function(){
+                        gsap.to('.step01 .analyzeView' , 2 , {height : 0, onComplete :function (){
+                            gsap.set('.step01 .analyzeView', {delay : 2, clearProps:"all"});
+                            document.querySelector('.step01 .analyzeView')?.classList.add('change');
+
+                            stepChat(2);
+                        }});
+
+                        document.querySelector('.analyzeViewInner')?.scrollTo({
+                            top : 0,
+                            behavior : 'smooth'
+                        })
+
+                    }, 2000);
+                });
+
+                gsap.to('.progressLine .bar' , 4.5 , {delay : 3, height : '100%',  onComplete :  function(){
+                    document.querySelectorAll('.chartMsgItem.step01 [data-next-text]').forEach(function(obj){
+                        setTimeout(function(){
+                            obj.textContent = obj.getAttribute('data-next-text');
+                            document.querySelector('.chartMsgItem.step01 .analyzeBox .btns.pause')?.classList.remove('pause');
+                        }, 60);
+                    });
+                }});
+            break;
+
+            case 2 :
+                setTimeout(function(){
+                    gsap.to('.msg.step01', 0.5 , {autoAlpha : 0, onComplete : function(){
+                        document.querySelector('.msg.step01')?.classList.remove('active');
+                    }})
+                }, 500);
+                document.querySelectorAll('.step02').forEach((object)=>{
+                    object.classList.add('active');
+                });
+                document.querySelector('.analyzeView')?.classList.add('close');
+                setTimeout(function(){
+                    sourcepos('.chartMsgItem.step02.active' , 100);
+                    sourcepos('.msg.step02.active' , 1500);
+                }, 1000);
+                setTimeout(function(){
+                    stepChat(3);
+
+                    gsap.to('.chartMsgItem.step02', 0.5 , {autoAlpha : 0, onComplete : function(){
+                        document.querySelector('.chartMsgItem.step02')?.classList.remove('active');
+                    }})
+                }, 5000);
+            break;
+
+            case 3 :
+                document.querySelector('.chartMsgItem.step03')?.classList.add('active');
+                sourcepos('.step03.active' , 600);
+
+                setTimeout(function(){
+                    gsap.to('.msg.step02', 0.5 , {autoAlpha : 0, onComplete : function(){
+                        document.querySelector('.msg.step02')?.classList.remove('active');
+                    }})
+                    document.querySelector('.msg.step03')?.classList.add('active');
+                    sourcepos('.msg.step03.active' , 800);
+                }, 800);
+
+                scrollToBottomUI('.chatCont', '.step03');
+            break;
+
+            case 4 :
+
+            break;
+        }
+    }
+
+    useEffect(() => {
+        stepChat(1);
     }, []);
 
     return (
@@ -141,8 +247,20 @@ const Analyze = () => {
                                                         <dd  data-sourcepos="8.5">이생명 고객님은 3건을 유지하며 월 210,346원을 아주 잘 납입하고 계시네요. 보험가입수준은 대한민국 37세 남성중에 백분위 60%수준에 해당해요. 사망, 장해등의 보장은 같은 연령대의 다른 고객들에 비해 매우 잘 준비하셨어요. 그런데 안타깝게도 보장항목별 중요도에 따라 분석한 결과 43점으로 또래 평균대비 12점이 낮으세요. 특히 암, 뇌, 심장질환에 대한 진단금은 아직 부족한것으로 보이네요.</dd>
                                                     </dl>
                                                     <div className="peopleInfoSwiper">
-                                                        <div className="swiper-wrapper">
-                                                            <div className="swiper-slide" data-sourcepos="12">
+                                                        <Swiper
+                                                            modules={[Pagination]}
+                                                            speed={300}
+                                                            slidesPerView={'auto'}
+                                                            observeParents={true}
+                                                            observer={true}
+                                                            spaceBetween={12}
+                                                            pagination={{
+                                                                clickable: true,
+                                                                el: '.peopleInfoSwiper .pagination',
+                                                                type: 'bullets',
+                                                            }}
+                                                        >
+                                                            <SwiperSlide data-sourcepos="12">
                                                                 <div className="peopleInfoCont">
                                                                     <div className="info">
                                                                         <dl>
@@ -165,8 +283,8 @@ const Analyze = () => {
                                                                 <div className="peopleInfobtm">
                                                                     <div className="option" data-sourcepos="15">30대 남자 평균 보험료 약 20만원</div>
                                                                 </div>
-                                                            </div>
-                                                            <div className="swiper-slide" data-sourcepos="14">
+                                                            </SwiperSlide>
+                                                            <SwiperSlide data-sourcepos="14">
                                                                 <div className="peopleInfoCont">
                                                                     <div className="info">
                                                                         <dl>
@@ -189,8 +307,8 @@ const Analyze = () => {
                                                                 <div className="peopleInfobtm">
                                                                     <div className="option">30대 남자 평균 보험료 약 20만원</div>
                                                                 </div>
-                                                            </div>
-                                                            <div className="swiper-slide" data-sourcepos="14">
+                                                            </SwiperSlide>
+                                                            <SwiperSlide data-sourcepos="14">
                                                                 <div className="peopleInfoCont">
                                                                     <div className="info">
                                                                         <dl>
@@ -213,8 +331,8 @@ const Analyze = () => {
                                                                 <div className="peopleInfobtm">
                                                                     <div className="option">30대 남자 평균 보험료 약 20만원</div>
                                                                 </div>
-                                                            </div>
-                                                        </div>
+                                                            </SwiperSlide>
+                                                        </Swiper>
                                                         <div className="pagination" data-sourcepos="16"></div>
                                                     </div>
                                                     <dl className="defineList" data-sourcepos="16.5">
@@ -270,8 +388,20 @@ const Analyze = () => {
                                             <dd data-sourcepos="10">현재 부족한 일반암 보장과 선택하신 뇌혈관질환 진단 보장을 함께 반영하기 위해, 회사 판매 전략에 따른 우선순위 분석 결과 해당 특약 조합이 1순위로 확인되었습니다. 이에 따라 계약체결률과 고객님의 니즈를 모두 충족할 수 있도록 최적의 방향으로 설계하였습니다.</dd>
                                         </dl>
                                         <div className="chartGraphSwiper">
-                                            <div className="swiper-wrapper">
-                                                <div className="swiper-slide" data-sourcepos="12">
+                                            <Swiper
+                                                modules={[Pagination]}
+                                                speed={300}
+                                                slidesPerView={'auto'}
+                                                observeParents={true}
+                                                observer={true}
+                                                spaceBetween={12}
+                                                pagination={{
+                                                    clickable: true,
+                                                    el: '.chartGraphSwiper .pagination',
+                                                    type: 'bullets',
+                                                }}
+                                            >
+                                                <SwiperSlide data-sourcepos="12">
                                                     <div className="head">
                                                         <div className="title" data-sourcepos="12.5">고객 개인화 추천</div>
                                                         <dl className="price">
@@ -285,8 +415,8 @@ const Analyze = () => {
                                                             <span>선택하기</span>
                                                         </a>
                                                     </div>
-                                                </div>
-                                                <div className="swiper-slide" data-sourcepos="12">
+                                                </SwiperSlide>
+                                                <SwiperSlide data-sourcepos="12">
                                                     <div className="head">
                                                         <div className="title" data-sourcepos="12.5">설계사 선호</div>
                                                         <dl className="price">
@@ -300,8 +430,8 @@ const Analyze = () => {
                                                             <span>선택하기</span>
                                                         </a>
                                                     </div>
-                                                </div>
-                                                <div className="swiper-slide" data-sourcepos="12">
+                                                </SwiperSlide>
+                                                <SwiperSlide data-sourcepos="12">
                                                     <div className="head">
                                                         <div className="title" data-sourcepos="12.5">회사 전략 추천</div>
                                                         <dl className="price">
@@ -315,8 +445,8 @@ const Analyze = () => {
                                                             <span>선택하기</span>
                                                         </a>
                                                     </div>
-                                                </div>
-                                            </div>
+                                                </SwiperSlide>
+                                            </Swiper>
                                             <div className="pagination" data-sourcepos="15.5"></div>
                                         </div>
                                     </div>
