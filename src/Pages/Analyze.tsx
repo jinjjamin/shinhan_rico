@@ -11,8 +11,24 @@ import 'swiper/css/pagination';
 
 /* Components */
 import Layout from '../Components/Layout';
+import Modal from '../Components/Modal';
 
 const Analyze = () => {
+    const modalOpen = (target : string) => {
+        const modalTarget = document.querySelectorAll(target);
+
+        if(!modalTarget.length){
+            return
+        }
+
+        modalTarget.forEach((obj)=> {
+            obj.classList.add('show');
+            setTimeout(function(){
+                obj.classList.add('active');
+            }, 1);
+        });
+    }
+
     const scrollToBottomUI = (target : string, className : string, onComplete? : ()=> void)=> {
         const $scrollBox = document.querySelector(target) as HTMLDivElement;
         const objLength = Number((target == '.analyzeViewInner') ?  $scrollBox.querySelectorAll('[data-sourcepos]').length : $scrollBox.querySelector('.chartMsgItem.active' + className)?.querySelectorAll('[data-sourcepos]').length);
@@ -74,8 +90,8 @@ const Analyze = () => {
                           .map(line =>
                             Array.from(line).map(char =>
                               char === ' '
-                                ? `<span class='letter space'>&nbsp;</span>`
-                                : `<span class='letter'>${char}</span>`
+                                ? `<span className='letter space'>&nbsp;</span>`
+                                : `<span className='letter'>${char}</span>`
                             ).join('')
                           ).join('<br>');
                       }
@@ -181,13 +197,28 @@ const Analyze = () => {
             break;
 
             case 4 :
-
+                document.querySelector('.msg.step03')?.classList.remove('active');
+                document.querySelectorAll('.step04').forEach((object)=>{
+                    object.classList.add('active');
+                });
+                sourcepos('.step04.active' ,100);
+                scrollToBottomUI('.chatCont', '.step04');
             break;
         }
     }
 
     useEffect(() => {
         stepChat(1);
+
+        // 모달 Close
+        document.querySelectorAll('.btnLayerClose').forEach((object)=> {
+            object.addEventListener('click' , (e)=> {
+                e.preventDefault();
+
+                object.closest('.modalPop')?.classList.remove('show');
+                object.closest('.modalPop')?.classList.remove('active');
+            })
+        })
     }, []);
 
     return (
@@ -225,9 +256,9 @@ const Analyze = () => {
                                             <dd data-sourcepos="4" data-next-text="설계 분석이 완료되었어요"  data-next-time="2.5">열심히 답변을 준비하고 있어요</dd>
                                         </dl>
                                         <div className="btnArea">
-                                            <a href="#" className="btns btnCol02 md view pause" data-sourcepos="4.5"  data-next-time="4">
+                                            <Link to="#" className="btns btnCol02 md view pause" data-sourcepos="4.5"  data-next-time="4">
                                                 <span data-next-text="생각과정 보기" data-sourcepos="4.7"  data-next-time="4">중지하기</span>
-                                            </a>
+                                            </Link>
                                         </div>
                                     </div>
                                     <div className="analyzeView" data-sourcepos="5">
@@ -411,9 +442,9 @@ const Analyze = () => {
                                                     </div>
                                                     <div className="cont">
                                                         <div className="chart" data-sourcepos="14"><img src="/public/images/mobile/img_chart01.png" alt="" /></div>
-                                                        <a href="#" className="btns btnLine01 md"  data-sourcepos="14.5">
+                                                        <Link to="#" className="btns btnLine01 md"  data-sourcepos="14.5" onClick={()=> modalOpen('#designDetails')}>
                                                             <span>선택하기</span>
-                                                        </a>
+                                                        </Link>
                                                     </div>
                                                 </SwiperSlide>
                                                 <SwiperSlide data-sourcepos="12">
@@ -426,9 +457,9 @@ const Analyze = () => {
                                                     </div>
                                                     <div className="cont">
                                                         <div className="chart" data-sourcepos="14"><img src="/public/images/mobile/img_chart02.png" alt="" /></div>
-                                                        <a href="#" className="btns btnLine01 md" data-sourcepos="14.5">
+                                                        <Link to="#" className="btns btnLine01 md" data-sourcepos="14.5">
                                                             <span>선택하기</span>
-                                                        </a>
+                                                        </Link>
                                                     </div>
                                                 </SwiperSlide>
                                                 <SwiperSlide data-sourcepos="12">
@@ -441,9 +472,9 @@ const Analyze = () => {
                                                     </div>
                                                     <div className="cont">
                                                         <div className="chart" data-sourcepos="14"><img src="/public/images/mobile/img_chart03.png" alt="" /></div>
-                                                        <a href="#" className="btns btnLine01 md" data-sourcepos="14.5">
+                                                        <Link to="#" className="btns btnLine01 md" data-sourcepos="14.5">
                                                             <span>선택하기</span>
-                                                        </a>
+                                                        </Link>
                                                     </div>
                                                 </SwiperSlide>
                                             </Swiper>
@@ -498,9 +529,9 @@ const Analyze = () => {
                                             </dl>
                                         </div>
                                         <div className="btnArea">
-                                            <a href="#" className="btns btnLine01 md" data-sourcepos="11">
+                                            <Link to="#" className="btns btnLine01 md" data-sourcepos="11">
                                                 <span>반영하기</span>
-                                            </a>
+                                            </Link>
                                         </div>
                                     </div>
                                 </div>
@@ -518,6 +549,165 @@ const Analyze = () => {
                     </div>
                 </div>
             </Layout>
+            <Modal id="designDetails" type="full" >
+                <div className="layerHead">
+                    <div>
+                        <Link to="#" className="btnHeadPrev btnLayerClose">
+                            <span>이전페이지로 이동</span>
+                        </Link>
+                    </div>
+                    <div>
+                        <Link to="#" className="textHeadSelect btnLayerClose" onClick={()=> stepChat(4)}>
+                            <span>선택하기</span>
+                        </Link>
+                    </div>
+                </div>
+                <div className="layerDesignInfo">
+                    <div className="info">
+                        <dl>
+                            <dt>이생명 고객님</dt>
+                            <dd>전문직업 / 30세 / 남자</dd>
+                        </dl>
+                        <div className="photo"><img src="/public/images/mobile/img_people.png" alt="" /></div>
+                    </div>
+                    <dl className="prodDefine">
+                        <dt>보험명</dt>
+                        <dd>신한통합 건강보장보험 ONE (무배당, 해약환급금 미지급형)</dd>
+                    </dl>
+                </div>
+                <div className="layerCont">
+                    <div className="prodItemListBox type02">
+                        <div className="prodItemHead">
+                            <div className="title">고객 개인화 추천</div>
+                            <div className="count">총 특약수 4개</div>
+                        </div>
+                        <div className="prodItemCont">
+                            <div className="item">
+                                <div className="name">신한통합건강보장보험 원 (ONE) 무배당, 해약환급미지급형</div>
+                                <dl className="price">
+                                    <dt>보험료</dt>
+                                    <dd><em>42,030</em> 원</dd>
+                                </dl>
+                                <div className="options">
+                                    <div>
+                                        <dl>
+                                            <dt>가입금액</dt>
+                                            <dd>5천만원</dd>
+                                        </dl>
+                                        <dl>
+                                            <dt>납입기간</dt>
+                                            <dd>20년</dd>
+                                        </dl>
+                                    </div>
+                                    <div>
+                                        <dl>
+                                            <dt>상품종류</dt>
+                                            <dd>종신</dd>
+                                        </dl>
+                                        <dl>
+                                            <dt>S-U/W</dt>
+                                            <dd className="point">가능</dd>
+                                        </dl>
+                                    </div>
+                                </div>
+                            </div>
+                            <div className="item">
+                                <div className="name">신한통합건강보장보험 원 (ONE) 무배당, 해약환급미지급형</div>
+                                <dl className="price">
+                                    <dt>보험료</dt>
+                                    <dd><em>42,030</em> 원</dd>
+                                </dl>
+                                <div className="options">
+                                    <div>
+                                        <dl>
+                                            <dt>가입금액</dt>
+                                            <dd>5천만원</dd>
+                                        </dl>
+                                        <dl>
+                                            <dt>납입기간</dt>
+                                            <dd>20년</dd>
+                                        </dl>
+                                    </div>
+                                    <div>
+                                        <dl>
+                                            <dt>상품종류</dt>
+                                            <dd>종신</dd>
+                                        </dl>
+                                        <dl>
+                                            <dt>S-U/W</dt>
+                                            <dd className="point">가능</dd>
+                                        </dl>
+                                    </div>
+                                </div>
+                            </div>
+                            <div className="item">
+                                <div className="name">신한통합건강보장보험 원 (ONE) 무배당, 해약환급미지급형</div>
+                                <dl className="price">
+                                    <dt>보험료</dt>
+                                    <dd><em>42,030</em> 원</dd>
+                                </dl>
+                                <div className="options">
+                                    <div>
+                                        <dl>
+                                            <dt>가입금액</dt>
+                                            <dd>5천만원</dd>
+                                        </dl>
+                                        <dl>
+                                            <dt>납입기간</dt>
+                                            <dd>20년</dd>
+                                        </dl>
+                                    </div>
+                                    <div>
+                                        <dl>
+                                            <dt>상품종류</dt>
+                                            <dd>종신</dd>
+                                        </dl>
+                                        <dl>
+                                            <dt>S-U/W</dt>
+                                            <dd className="point">가능</dd>
+                                        </dl>
+                                    </div>
+                                </div>
+                            </div>
+                            <div className="item">
+                                <div className="name">신한통합건강보장보험 원 (ONE) 무배당, 해약환급미지급형</div>
+                                <dl className="price">
+                                    <dt>보험료</dt>
+                                    <dd><em>42,030</em> 원</dd>
+                                </dl>
+                                <div className="options">
+                                    <div>
+                                        <dl>
+                                            <dt>가입금액</dt>
+                                            <dd>5천만원</dd>
+                                        </dl>
+                                        <dl>
+                                            <dt>납입기간</dt>
+                                            <dd>20년</dd>
+                                        </dl>
+                                    </div>
+                                    <div>
+                                        <dl>
+                                            <dt>상품종류</dt>
+                                            <dd>종신</dd>
+                                        </dl>
+                                        <dl>
+                                            <dt>S-U/W</dt>
+                                            <dd className="point">가능</dd>
+                                        </dl>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div className="chartArea">
+                        <input type="text" className="inpText" placeholder="직접 입력하여 수정하실수 있어요" />
+                        <Link to="#" className="btnChatAudio">
+                            <span>오디오</span>
+                        </Link>
+                    </div>
+                </div>
+            </Modal>
         </>
     )
 }

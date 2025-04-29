@@ -5,7 +5,7 @@ interface ModalProps {
     id? : string;
     type? : string;
     children : React.ReactNode;
-    link : string;
+    link? : string;
 }
 
 const Modal:React.FC<ModalProps> = ({id, type, children, link}) => {
@@ -33,11 +33,15 @@ const Modal:React.FC<ModalProps> = ({id, type, children, link}) => {
                             <span>해당 모달 닫기</span>
                         </Link>
                     </div>
-                    <div className="modalFoot">
-                        <Link to={link} className="btns btnCol01">
-                            <span>선택완료</span>
-                        </Link>
-                    </div>
+                    {
+                        link && (
+                            <div className="modalFoot">
+                                <Link to={link} className="btns btnCol01">
+                                    <span>선택완료</span>
+                                </Link>
+                            </div>
+                        )
+                    }
                 </div>
             </div>
         </>
