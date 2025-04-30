@@ -26,7 +26,8 @@ const Header = () => {
                 object.closest('.modalPop')?.classList.remove('show');
                 object.closest('.modalPop')?.classList.remove('active');
             })
-        })
+        });
+
     }, [])
     return (
         <>

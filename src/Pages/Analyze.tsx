@@ -1,4 +1,4 @@
-import React, {useEffect} from 'react';
+import React, {useEffect, useState} from 'react';
 import { Link } from 'react-router-dom';
 import { gsap } from "gsap";
 import { useGSAP } from "@gsap/react";
@@ -14,6 +14,8 @@ import Layout from '../Components/Layout';
 import Modal from '../Components/Modal';
 
 const Analyze = () => {
+    const [isAnalyze, setIsAnalyze] = useState(false);
+
     const modalOpen = (target : string) => {
         const modalTarget = document.querySelectorAll(target);
 
@@ -193,7 +195,11 @@ const Analyze = () => {
                     sourcepos('.msg.step03.active' , 800);
                 }, 800);
 
-                scrollToBottomUI('.chatCont', '.step03');
+                scrollToBottomUI('.chatCont', '.step03', ()=> {
+                    scrollContentMove();
+
+                    setIsAnalyze(true)
+                });
             break;
 
             case 4 :
@@ -205,6 +211,101 @@ const Analyze = () => {
                 scrollToBottomUI('.chatCont', '.step04');
             break;
         }
+    }
+
+    const scrollContentMove = () => {
+        const $sections = document.querySelectorAll('.chartMsgItem');
+        let currentIndex = 0;
+
+        if($sections.length <= 0){
+            return;
+        }
+
+        const  scrollToSection = (index : number) => {
+            const offsetTop =  $sections[index]?.offsetTop + document.querySelector('.chatCont')?.scrollTop - 175;
+
+            document.querySelector('.chatCont')?.scrollTo({
+                top : offsetTop,
+                behavior : 'smooth'
+            })
+        }
+
+        document.querySelectorAll('.btnCtrlMove .btnMove').forEach((btnMove)=> {
+            btnMove.addEventListener('click' , (e)=> {
+                e.preventDefault();
+
+                 if(btnMove.classList.contains('up')){
+                    if (currentIndex > 0) {
+                        currentIndex--;
+                        scrollToSection(currentIndex);
+                    }
+                 }
+                 else  if(btnMove.classList.contains('down')){
+                    if (currentIndex < $sections.length - 1) {
+                        currentIndex++;
+                        scrollToSection(currentIndex);
+                    }
+                 }
+            })
+        })
+
+        // 현재 스크롤 위치 기준으로 인덱스 초기화 (선택사항)
+        document.querySelector('.chatCont')?.addEventListener('scroll', function () {
+            $sections.forEach((el, i) =>  {
+                const top = el?.offsetTop - 10;
+                if (document.querySelector('.chatCont')?.scrollTop >= top) {
+                    currentIndex = i;
+                }
+            });
+        });
+    }
+
+    const prodItems = [
+        {
+            name : '신한통합건강보장보험 원 (ONE) 무배당, 해약환급미지급형',
+            price : 42030,
+            joinPrice : '5천만원',
+            joinDate : '20년',
+            type : '종신',
+            able : '가능'
+        },
+        {
+            name : '신한통합건강보장보험 원 (ONE) 무배당, 해약환급미지급형',
+            price : 42030,
+            joinPrice : '5천만원',
+            joinDate : '20년',
+            type : '종신',
+            able : '가능'
+        },
+        {
+            name : '신한통합건강보장보험 원 (ONE) 무배당, 해약환급미지급형',
+            price : 42030,
+            joinPrice : '5천만원',
+            joinDate : '20년',
+            type : '종신',
+            able : '가능'
+        },
+        {
+            name : '신한통합건강보장보험 원 (ONE) 무배당, 해약환급미지급형',
+            price : 42030,
+            joinPrice : '5천만원',
+            joinDate : '20년',
+            type : '종신',
+            able : '가능'
+        },
+        {
+            name : '신한통합건강보장보험 원 (ONE) 무배당, 해약환급미지급형',
+            price : 42030,
+            joinPrice : '5천만원',
+            joinDate : '20년',
+            type : '종신',
+            able : '가능'
+        }
+    ]
+
+    // 생각과정 보기 클릭
+    const analyzeViewHandler = () => {
+        setIsAnalyze((isAnalyze : boolean) => ! isAnalyze);
     }
 
     useEffect(() => {
@@ -256,12 +357,12 @@ const Analyze = () => {
                                             <dd data-sourcepos="4" data-next-text="설계 분석이 완료되었어요"  data-next-time="2.5">열심히 답변을 준비하고 있어요</dd>
                                         </dl>
                                         <div className="btnArea">
-                                            <Link to="#" className="btns btnCol02 md view pause" data-sourcepos="4.5"  data-next-time="4">
+                                            <Link to="#" className="btns btnCol02 md view pause" data-sourcepos="4.5"  data-next-time="4" onClick={()=> analyzeViewHandler()}>
                                                 <span data-next-text="생각과정 보기" data-sourcepos="4.7"  data-next-time="4">중지하기</span>
                                             </Link>
                                         </div>
                                     </div>
-                                    <div className="analyzeView" data-sourcepos="5">
+                                    <div className={isAnalyze ? "analyzeView close" : "analyzeView"} data-sourcepos="5">
                                         <div className="analyzeViewInner">
                                             <div className="titSearch" data-sourcepos="5.5">리코의 생각과정</div>
                                             <div className="alnalyzeProgress">
@@ -582,122 +683,39 @@ const Analyze = () => {
                             <div className="count">총 특약수 4개</div>
                         </div>
                         <div className="prodItemCont">
-                            <div className="item">
-                                <div className="name">신한통합건강보장보험 원 (ONE) 무배당, 해약환급미지급형</div>
-                                <dl className="price">
-                                    <dt>보험료</dt>
-                                    <dd><em>42,030</em> 원</dd>
-                                </dl>
-                                <div className="options">
-                                    <div>
-                                        <dl>
-                                            <dt>가입금액</dt>
-                                            <dd>5천만원</dd>
+                            {
+                                prodItems.map((item, index)=>
+                                    <div className="item">
+                                        <div className="name">{item.name}</div>
+                                        <dl className="price">
+                                            <dt>보험료</dt>
+                                            <dd><em>{item.price.toLocaleString()}</em> 원</dd>
                                         </dl>
-                                        <dl>
-                                            <dt>납입기간</dt>
-                                            <dd>20년</dd>
-                                        </dl>
+                                        <div className="options">
+                                            <div>
+                                                <dl>
+                                                    <dt>가입금액</dt>
+                                                    <dd>{item.joinPrice}</dd>
+                                                </dl>
+                                                <dl>
+                                                    <dt>납입기간</dt>
+                                                    <dd>{item.joinDate}</dd>
+                                                </dl>
+                                            </div>
+                                            <div>
+                                                <dl>
+                                                    <dt>상품종류</dt>
+                                                    <dd>{item.type}</dd>
+                                                </dl>
+                                                <dl>
+                                                    <dt>S-U/W</dt>
+                                                    <dd className="point">{item.able}</dd>
+                                                </dl>
+                                            </div>
+                                        </div>
                                     </div>
-                                    <div>
-                                        <dl>
-                                            <dt>상품종류</dt>
-                                            <dd>종신</dd>
-                                        </dl>
-                                        <dl>
-                                            <dt>S-U/W</dt>
-                                            <dd className="point">가능</dd>
-                                        </dl>
-                                    </div>
-                                </div>
-                            </div>
-                            <div className="item">
-                                <div className="name">신한통합건강보장보험 원 (ONE) 무배당, 해약환급미지급형</div>
-                                <dl className="price">
-                                    <dt>보험료</dt>
-                                    <dd><em>42,030</em> 원</dd>
-                                </dl>
-                                <div className="options">
-                                    <div>
-                                        <dl>
-                                            <dt>가입금액</dt>
-                                            <dd>5천만원</dd>
-                                        </dl>
-                                        <dl>
-                                            <dt>납입기간</dt>
-                                            <dd>20년</dd>
-                                        </dl>
-                                    </div>
-                                    <div>
-                                        <dl>
-                                            <dt>상품종류</dt>
-                                            <dd>종신</dd>
-                                        </dl>
-                                        <dl>
-                                            <dt>S-U/W</dt>
-                                            <dd className="point">가능</dd>
-                                        </dl>
-                                    </div>
-                                </div>
-                            </div>
-                            <div className="item">
-                                <div className="name">신한통합건강보장보험 원 (ONE) 무배당, 해약환급미지급형</div>
-                                <dl className="price">
-                                    <dt>보험료</dt>
-                                    <dd><em>42,030</em> 원</dd>
-                                </dl>
-                                <div className="options">
-                                    <div>
-                                        <dl>
-                                            <dt>가입금액</dt>
-                                            <dd>5천만원</dd>
-                                        </dl>
-                                        <dl>
-                                            <dt>납입기간</dt>
-                                            <dd>20년</dd>
-                                        </dl>
-                                    </div>
-                                    <div>
-                                        <dl>
-                                            <dt>상품종류</dt>
-                                            <dd>종신</dd>
-                                        </dl>
-                                        <dl>
-                                            <dt>S-U/W</dt>
-                                            <dd className="point">가능</dd>
-                                        </dl>
-                                    </div>
-                                </div>
-                            </div>
-                            <div className="item">
-                                <div className="name">신한통합건강보장보험 원 (ONE) 무배당, 해약환급미지급형</div>
-                                <dl className="price">
-                                    <dt>보험료</dt>
-                                    <dd><em>42,030</em> 원</dd>
-                                </dl>
-                                <div className="options">
-                                    <div>
-                                        <dl>
-                                            <dt>가입금액</dt>
-                                            <dd>5천만원</dd>
-                                        </dl>
-                                        <dl>
-                                            <dt>납입기간</dt>
-                                            <dd>20년</dd>
-                                        </dl>
-                                    </div>
-                                    <div>
-                                        <dl>
-                                            <dt>상품종류</dt>
-                                            <dd>종신</dd>
-                                        </dl>
-                                        <dl>
-                                            <dt>S-U/W</dt>
-                                            <dd className="point">가능</dd>
-                                        </dl>
-                                    </div>
-                                </div>
-                            </div>
+                                )
+                            }
                         </div>
                     </div>
                     <div className="chartArea">
